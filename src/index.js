@@ -1,6 +1,7 @@
 const plaid = require("plaid");
 const express = require("express");
 const bodyParser = require("body-parser");
+const path = require("path");
 const dotenv = require("dotenv");
 const app = express();
 
@@ -21,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
-  res.sendFile("plaid-link.html");
+  res.sendFile(path.join(__dirname, "plaid-link.html"));
 });
 
 app.post("/plaid_token_exchange", async (req, res) => {
