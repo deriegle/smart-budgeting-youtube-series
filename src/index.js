@@ -45,23 +45,13 @@ app.post("/plaid_token_exchange", async (req, res) => {
       .getAccounts(access_token)
       .catch(handleError);
 
-    const user = new User({
-      email: "example@test.com",
-      password: "123456"
+    const user = await User.findOne({
+      email: "example@test.com"
     });
 
-    const savedUser = await user.save();
-
-    const plaidItem = new PlaidItem({
-      userId: savedUser._id,
-      availableProducts: item.available_products,
-      billedProducts: item.billed_products,
-      institutionId: item.institution_id,
-      itemId: item.item_id,
-      webhook: item.webhook
+    const plaidItem = await PlaidItem.findOne({
+      itemId: item.item_id
     });
-
-    const savedItem = await plaidItem.save();
 
     const savedAccounts = accounts
       .map(
@@ -77,7 +67,7 @@ app.post("/plaid_token_exchange", async (req, res) => {
             type: account.type
           })
       )
-      .map(async doc => await doc.save);
+      .map(async doc => await doc.save());
 
     console.log({
       savedUser,
