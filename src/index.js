@@ -15,7 +15,10 @@ function handleError(errorMessage) {
   console.error(errorMessage);
 }
 
-mongoose.connect(process.env.DB_CONNECTION_STRING);
+mongoose.connect(process.env.DB_CONNECTION_STRING, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
 const client = new plaid.Client(
   process.env.PLAID_CLIENT_ID,
@@ -49,7 +52,7 @@ app.post("/plaid_token_exchange", async (req, res) => {
 
   const savedUser = await user.save();
 
-  const item = new PlaidItem({
+  const plaidItem = new PlaidItem({
     userId: savedUser._id,
     availableProducts: item.available_products,
     billedProducts: item.billed_products,
@@ -58,7 +61,7 @@ app.post("/plaid_token_exchange", async (req, res) => {
     webhook: item.webhook
   });
 
-  const savedItem = await item.save();
+  const savedItem = await plaidItem.save();
 
   const savedAccounts = accounts
     .map(
