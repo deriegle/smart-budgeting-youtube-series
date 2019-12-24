@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
 const app = express();
 
-dotenv.load();
+dotenv.config();
 
 function handleError(errorMessage) {
   console.error(errorMessage);
@@ -14,16 +14,14 @@ const client = new plaid.Client(
   process.env.PLAID_CLIENT_ID,
   process.env.PLAID_SECRET,
   process.env.PLAID_PUBLIC_KEY,
-  "sandbox"
+  plaid.environments.sandbox
 );
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.get("/", (req, res) => {
-  res.json({
-    message: "Hello, world"
-  });
+  res.sendFile("plaid-link.html");
 });
 
 app.post("/plaid_token_exchange", async (req, res) => {
