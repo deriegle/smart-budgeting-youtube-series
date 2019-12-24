@@ -45,19 +45,17 @@ app.post("/plaid_token_exchange", async (req, res) => {
       .getAccounts(access_token)
       .catch(handleError);
 
-    const user = await User.findOne({
-      email: "example@test.com"
-    });
-
     const plaidItem = await PlaidItem.findOne({
       itemId: item.item_id
-    });
+    }).exec();
+
+    console.log({ plaidItem });
 
     const savedAccounts = accounts
       .map(
         account =>
           new PlaidAccount({
-            plaidItemId: savedItem._id,
+            plaidItemId: plaidItem._id,
             accountId: account.account_id,
             mask: account.mask,
             balances: account.balances,
@@ -70,9 +68,7 @@ app.post("/plaid_token_exchange", async (req, res) => {
       .map(async doc => await doc.save());
 
     console.log({
-      savedUser,
-      savedAccounts,
-      savedItem
+      savedAccounts
     });
   } catch (e) {
     console.error(e);
