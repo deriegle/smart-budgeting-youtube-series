@@ -45,27 +45,36 @@ app.post("/plaid_token_exchange", async (req, res) => {
       .getAccounts(access_token)
       .catch(handleError);
 
-    const plaidItem = await PlaidItem.findOne({
-      itemId: item.item_id
-    }).exec();
+    const user = await User.findOne().exec();
 
-    console.log({ plaidItem });
+    const plaidItem = await new PlaidItem({
+      userId: user._id,
+      availableProducts: item.available_products,
+      billedProducts: item.billed_products,
+      institutionId: item.institution_id,
+      itemId: item.item_id,
+      webhook: item.webhook
+    }).save();
 
-    const savedAccounts = accounts
-      .map(
-        account =>
-          new PlaidAccount({
-            plaidItemId: plaidItem._id,
-            accountId: account.account_id,
-            mask: account.mask,
-            balances: account.balances,
-            name: account.name,
-            officialName: account.official_name,
-            subtype: account.subtype,
-            type: account.type
-          })
-      )
-      .map(async doc => await doc.save());
+    console.log({ user, plaidItem });
+
+    const plaidAccounts = accounts.map(
+      async account =>
+        await new PlaidAccount({
+          plaidItemId: plaidItem._id,
+          accountId: account.account_id,
+          mask: account.mask,
+          balances: account.balances,
+          name: account.name,
+          officialName: account.official_name,
+          subtype: account.subtype,
+          type: account.type
+        }).save()
+    );
+
+    const savedAccounts = plaidAccounts.map(async a => {
+      return await a.save();
+    });
 
     console.log({
       savedAccounts

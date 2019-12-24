@@ -24,8 +24,7 @@ module.exports = model(
       required: true
     },
     officialName: {
-      type: String,
-      required: true
+      type: String
     },
     subtype: {
       type: String,
