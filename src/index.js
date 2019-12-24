@@ -16,8 +16,7 @@ function handleError(errorMessage) {
 }
 
 mongoose.connect(process.env.DB_CONNECTION_STRING, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+  useNewUrlParser: true
 });
 
 const client = new plaid.Client(
@@ -35,55 +34,59 @@ app.get("/", (req, res) => {
 });
 
 app.post("/plaid_token_exchange", async (req, res) => {
-  const { publicToken } = req.body;
+  try {
+    const { publicToken } = req.body;
 
-  const { access_token } = await client
-    .exchangePublicToken(publicToken)
-    .catch(handleError);
+    const { access_token } = await client
+      .exchangePublicToken(publicToken)
+      .catch(handleError);
 
-  const { accounts, item } = await client
-    .getAccounts(access_token)
-    .catch(handleError);
+    const { accounts, item } = await client
+      .getAccounts(access_token)
+      .catch(handleError);
 
-  const user = new User({
-    email: "example@test.com",
-    password: "123456"
-  });
+    const user = new User({
+      email: "example@test.com",
+      password: "123456"
+    });
 
-  const savedUser = await user.save();
+    const savedUser = await user.save();
 
-  const plaidItem = new PlaidItem({
-    userId: savedUser._id,
-    availableProducts: item.available_products,
-    billedProducts: item.billed_products,
-    institutionId: item.institution_id,
-    itemId: item.item_id,
-    webhook: item.webhook
-  });
+    const plaidItem = new PlaidItem({
+      userId: savedUser._id,
+      availableProducts: item.available_products,
+      billedProducts: item.billed_products,
+      institutionId: item.institution_id,
+      itemId: item.item_id,
+      webhook: item.webhook
+    });
 
-  const savedItem = await plaidItem.save();
+    const savedItem = await plaidItem.save();
 
-  const savedAccounts = accounts
-    .map(
-      account =>
-        new PlaidAccount({
-          plaidItemId: savedItem._id,
-          accountId: account.account_id,
-          mask: account.mask,
-          balances: account.balances,
-          name: account.name,
-          officialName: account.official_name,
-          subtype: account.subtype,
-          type: account.type
-        })
-    )
-    .map(async doc => await doc.save);
+    const savedAccounts = accounts
+      .map(
+        account =>
+          new PlaidAccount({
+            plaidItemId: savedItem._id,
+            accountId: account.account_id,
+            mask: account.mask,
+            balances: account.balances,
+            name: account.name,
+            officialName: account.official_name,
+            subtype: account.subtype,
+            type: account.type
+          })
+      )
+      .map(async doc => await doc.save);
 
-  console.log({
-    savedUser,
-    savedAccounts,
-    savedItem
-  });
+    console.log({
+      savedUser,
+      savedAccounts,
+      savedItem
+    });
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 app.listen(8080, () =>
