@@ -58,7 +58,7 @@ app.post("/plaid_token_exchange", async (req, res) => {
 
     console.log({ user, plaidItem });
 
-    const plaidAccounts = accounts.map(
+    const savedAccounts = accounts.map(
       async account =>
         await new PlaidAccount({
           plaidItemId: plaidItem._id,
@@ -71,10 +71,6 @@ app.post("/plaid_token_exchange", async (req, res) => {
           type: account.type
         }).save()
     );
-
-    const savedAccounts = plaidAccounts.map(async a => {
-      return await a.save();
-    });
 
     console.log({
       savedAccounts
