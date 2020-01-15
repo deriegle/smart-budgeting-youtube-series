@@ -11,10 +11,6 @@ const app = express();
 
 dotenv.config();
 
-function handleError(errorMessage) {
-  console.error(errorMessage);
-}
-
 mongoose.connect(process.env.DB_CONNECTION_STRING, {
   useNewUrlParser: true
 });
@@ -39,11 +35,11 @@ app.post("/plaid_token_exchange", async (req, res) => {
 
     const { access_token } = await client
       .exchangePublicToken(publicToken)
-      .catch(handleError);
+      .catch(console.error);
 
     const { accounts, item } = await client
       .getAccounts(access_token)
-      .catch(handleError);
+      .catch(console.error);
 
     const user = await User.findOne().exec();
 
